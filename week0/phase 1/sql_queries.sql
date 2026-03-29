@@ -1,25 +1,24 @@
 CREATE TABLE customers (
-    customer_id INT,
-    customer_name VARCHAR(50),
-    city VARCHAR(50),
-    age INT
+customer_id INT,
+customer_name VARCHAR(50),
+city VARCHAR(50),
+age INT
 );
-INSERT INTO customers (customer_id, customer_name, city, age) VALUES
+
+INSERT INTO customers VALUES
 (1, 'Ravi', 'Hyderabad', 25),
 (2, 'Sita', 'Chennai', 32),
-(3, 'Arun', 'Hyderabad', 28),
-(4, 'Meena', 'Bengaluru', 35),
-(5, 'Kiran', 'Chennai', 22);
-CREATE TABLE orders (
-    order_id INT,
-    customer_id INT,
-    amount INT,
-    order_date DATE
-);
-INSERT INTO orders (order_id, customer_id, amount, order_date) VALUES
-(101, 1, 2500, '2026-03-01'),
-(102, 2, 1800, '2026-03-02'),
-(103, 1, 3200, '2026-03-03'),
-(104, 3, 1500, '2026-03-04'),
-(105, 5, 2800, '2026-03-05');
+(3, 'Arun', 'Hyderabad', 28);
 
+SELECT * FROM customers;
+SELECT * FROM customers
+WHERE city = 'Chennai';
+
+SELECT * FROM customers
+WHERE age > 25;
+
+SELECT customer_name, city FROM customers;
+
+SELECT city, COUNT(*) 
+FROM customers
+GROUP BY city;
