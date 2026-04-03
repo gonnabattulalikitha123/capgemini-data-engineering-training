@@ -85,16 +85,6 @@ We work with multiple data sources: CSV, JSON, and Parquet files.
 - SQL knowledge helps understand PySpark transformations
 - Gained confidence in handling multiple data formats (CSV, JSON, Parquet)
 
----
-
-## How to Run
-1. Open any PySpark environment (local or online compiler)
-2. Place sample files (`customers.csv`, `orders.json`, `sales.parquet`) in `/samples/`
-3. Copy the PySpark ETL code (`etl_pipeline_student.py`)
-4. Run the script
-5. Observe cleaned data, aggregation results, and reporting table
-
----
 
 ## Summary
 This project demonstrates **Phase 3 learning objectives**:
