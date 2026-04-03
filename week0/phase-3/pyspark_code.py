@@ -1,6 +1,4 @@
-# ============================================
-# PySpark ETL Pipeline - Phase 3 
-# ============================================
+
 
 # Import Spark Session
 from pyspark.sql import SparkSession
@@ -8,18 +6,17 @@ from pyspark.sql import SparkSession
 # Import functions for transformations
 from pyspark.sql.functions import col, sum
 
-# --------------------------------------------
+
 # STEP 1: Start Spark Session
-# --------------------------------------------
 # This initializes PySpark
 spark = SparkSession.builder \
     .master("local[*]") \
     .appName("ETL_Pipeline_Phase3") \
     .getOrCreate()
 
-# --------------------------------------------
+
 # STEP 2: Extract (Create Raw Data)
-# --------------------------------------------
+
 # In real projects, data comes from files
 # Here we simulate raw (dirty) data
 
@@ -39,9 +36,9 @@ df = spark.createDataFrame(data, columns)
 print("🔹 Raw Data:")
 df.show()
 
-# --------------------------------------------
+
 # STEP 3: Transform (Data Cleaning)
-# --------------------------------------------
+
 
 # 3.1 Remove rows where customer_id is NULL
 df = df.dropna(subset=["customer_id"])
@@ -64,9 +61,9 @@ df = df.dropna(subset=["amount"])
 print("🔹 Cleaned Data:")
 df.show()
 
-# --------------------------------------------
+
 # STEP 4: Aggregation (Business Logic)
-# --------------------------------------------
+
 # Calculate total sales per region
 
 result = df.groupBy("region") \
@@ -77,11 +74,82 @@ result.show()
 
 
 
-# --------------------------------------------
+
 # END OF PIPELINE
-# --------------------------------------------
 
 print("🎯 ETL Pipeline Completed Successfully!")
 
 # Stop Spark session
+spark.stop()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#phase 3A
+
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, count
+
+spark = SparkSession.builder.appName("practice").getOrCreate()
+
+# creating messy data
+data = [
+    (1, "Ravi", "Hyderabad", 25),
+    (2, None, "Chennai", 32),
+    (None, "Arun", "Hyderabad", 28),
+    (4, "Meena", None, 30),
+    (4, "Meena", None, 30),
+    (5, "John", "Bangalore", -5)
+]
+
+cols = ["customer_id", "name", "city", "age"]
+
+df = spark.createDataFrame(data, cols)
+
+print("before cleaning")
+df.show()
+
+print("row count before:", df.count())
+
+# cleaning
+
+# remove null customer_id
+df = df.dropna(subset=["customer_id"])
+
+# fill missing names
+df = df.fillna({"name": "Unknown"})
+
+# remove null city
+df = df.dropna(subset=["city"])
+
+# remove duplicates
+df = df.dropDuplicates()
+
+# remove invalid age
+df = df.filter(col("age") > 0)
+
+print("after cleaning")
+df.show()
+
+print("row count after:", df.count())
+
+# aggregation
+result = df.groupBy("city").agg(count("customer_id").alias("total_customers"))
+
+print("customers per city")
+result.show()
+
 spark.stop()
