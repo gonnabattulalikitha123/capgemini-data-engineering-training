@@ -1,65 +1,101 @@
-from pyspark.sql import SparkSession
+# PySpark ETL Pipeline – Phase-3
+## 🎯 Objective
 
-spark = SparkSession.builder.appName("Test").getOrCreate()
+This project demonstrates a simple ETL (Extract → Transform → Load) pipeline using PySpark.
+The goal is to understand how raw data is cleaned and transformed step-by-step into meaningful output.
 
-customers_data = [
-    ("1", "Alice", "New York"),
-    ("2", "Bob", "Los Angeles"),
-    ("3", "Charlie", "Chicago"),
-    ("4", "David", "New York")
-]
+---
 
-orders_data = [
-   ("101", "1", 100),
-    ("102", "1", 200),
-    ("103", "2", 150),
-    ("104", "3", 300)
-]
+## 🔁 What is ETL?
 
-customers = spark.createDataFrame(customers_data, ["customer_id", "name", "city"])
-orders = spark.createDataFrame(orders_data, ["order_id", "customer_id", "order_amount"])
-customers = customers.dropna(subset=["customer_id"])
-orders = orders.dropna(subset=["customer_id"])
-customers.createOrReplaceTempView("customers")
-orders.createOrReplaceTempView("orders")
+* **Extract** → Get raw data
+* **Transform** → Clean and process data
+* **Load** → Store or output the cleaned data
 
-from pyspark.sql.functions import sum
+---
 
-orders.groupBy("customer_id") \
-      .agg(sum("order_amount").alias("total_spend")) \
-      .show()
+## 📊 Dataset Description
 
-orders.groupBy("customer_id") \
-      .agg(sum("order_amount").alias("total_spend")) \
-      .orderBy("total_spend", ascending=False) \
-      .limit(3) \
-      .show()
+The dataset used in this project is **intentionally dirty** to simulate real-world scenarios.
 
-customers.join(orders, "customer_id", "left") \
-         .filter(orders.customer_id.isNull()) \
-         .select(customers.customer_id) \
-         .show()
+### Issues in raw data:
 
-customers.join(orders, "customer_id") \
-         .groupBy("city") \
-         .agg(sum("order_amount").alias("total_revenue")) \
-         .show()
+* Missing values (nulls)
+* Invalid ages (negative values)
+* Missing names
+* Incorrect data types (amount as string)
+* Invalid values (non-numeric amount)
 
-from pyspark.sql.functions import avg
+---
 
-orders.groupBy("customer_id") \
-      .agg(avg("order_amount").alias("avg_order")) \
-      .show()
+## ⚙️ ETL Pipeline Steps
+
+### 🔹 1. Extract
+
+* Created raw dataset using PySpark DataFrame
+* Simulates real-world unclean data
+
+---
+
+### 🔹 2. Transform (Data Cleaning)
+
+The following cleaning steps were performed:
+
+* Removed rows with null `customer_id`
+* Filled missing names with `"Unknown"`
+* Filtered invalid ages (age > 0)
+* Removed rows with missing `region`
+* Converted `amount` column from string to numeric
+* Removed invalid amount values
+
+---
+
+### 🔹 3. Load
+
+* Attempted to save cleaned data to output folder
+* (Note: May not work in some online environments)
+
+---
+
+## 📈 Business Logic (Aggregation)
+
+* Calculated **total sales per region** using:
+
+  * `groupBy()`
+  * `sum()`
+
+---
+
+## 🧠 Key Learnings
+
+* Real-world data is messy and requires cleaning
+* Data validation is important before processing
+* Order of operations matters in ETL pipelines
+* Learned PySpark DataFrame operations:
+
+  * `dropna()`
+  * `fillna()`
+  * `filter()`
+  * `withColumn()`
+  * `groupBy()`
+* Understood pipeline thinking:
+
+  * Extract → Clean → Transform → Aggregate
+
+---
+
+## 🔄 Pipeline Flow
+
+Raw Data → Cleaning → Filtering → Transformation → Aggregation → Output
+
+---
+
+## 🛠️ Technologies Used
+
+* Python
+* PySpark
 
 
-from pyspark.sql.functions import count
+## 🏁 Conclusion
 
-orders.groupBy("customer_id") \
-      .agg(count("*").alias("order_count")) \
-      .filter("order_count > 1") \
-      .show()
-
-orders.groupBy("customer_id") \
-      .agg(sum("order_amount").alias("total_spend")) \
-      .orderBy("total_spend", ascending=False) \
-      .show()
+This phase shows how to take raw, messy data and transform it into clean, structured data using a step-by-step ETL pipeline in PySpark.
