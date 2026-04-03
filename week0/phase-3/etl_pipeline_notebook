@@ -1,1 +1,90 @@
+# Import Spark
+from pyspark.sql import SparkSession
+from pyspark.sql.functions import col, count, sum as sum_, row_number
+from pyspark.sql.window import Window
 
+# Start Spark session
+spark = SparkSession.builder.appName("Student_ETL_Pipeline").getOrCreate()
+
+# STEP 1: Read CSV file
+df_customers = spark.read.format("csv") \
+    .option("header", "true") \
+    .load("/samples/customers.csv")
+
+# Show raw customers data
+print("Raw Customers Data")
+df_customers.show()
+df_customers.printSchema()
+
+# STEP 2: Identify missing values
+print("Null Counts per Column")
+df_customers.select([count(col(c)).alias(c+"_non_null_count") for c in df_customers.columns]).show()
+
+# STEP 3: Clean Data
+# Remove rows with null key columns
+df_clean = df_customers.dropna(subset=["customer_id", "name", "city"])
+# Fill optional missing values
+df_clean = df_clean.fillna({"age": 0})
+# Filter invalid age
+df_clean = df_clean.filter(col("age") > 0)
+
+print("Cleaned Customers Data")
+df_clean.show()
+print("Row count before:", df_customers.count(), "Row count after:", df_clean.count())
+
+# STEP 4: Read JSON and Parquet files
+df_orders = spark.read.json("/samples/orders.json")
+print("Orders JSON Data")
+df_orders.show()
+df_orders.printSchema()
+
+df_sales = spark.read.parquet("/samples/sales.parquet")
+print("Sales Parquet Data")
+df_sales.show()
+df_sales.printSchema()
+
+# STEP 5: Business Pipeline Exercises
+
+# 5.1 Calculate daily sales
+daily_sales = df_sales.groupBy("date").sum("amount").withColumnRenamed("sum(amount)", "daily_sales")
+print("Daily Sales")
+daily_sales.show()
+
+# 5.2 City-wise revenue
+city_revenue = df_clean.join(df_orders, "customer_id") \
+    .groupBy("city").sum("order_amount").withColumnRenamed("sum(order_amount)", "city_revenue")
+print("City-wise Revenue")
+city_revenue.show()
+
+# 5.3 Repeat customers (more than 2 orders)
+repeat_customers = df_orders.groupBy("customer_id") \
+    .count() \
+    .filter(col("count") > 2)
+print("Repeat Customers (>2 orders)")
+repeat_customers.show()
+
+# 5.4 Highest spending customer per city
+customer_spend = df_clean.join(df_orders, "customer_id") \
+    .groupBy("city", "customer_id") \
+    .agg(sum_("order_amount").alias("total_spend"))
+
+window = Window.partitionBy("city").orderBy(col("total_spend").desc())
+top_customer_per_city = customer_spend.withColumn("rn", row_number().over(window)) \
+                                      .filter(col("rn") == 1) \
+                                      .drop("rn")
+print("Top Customer per City")
+top_customer_per_city.show()
+
+# 5.5 Final reporting table
+final_report = df_clean.join(df_orders, "customer_id") \
+    .groupBy("customer_id", "city") \
+    .agg(
+        sum_("order_amount").alias("total_spend"),
+        count("order_id").alias("order_count")
+    )
+print("Final Reporting Table")
+final_report.show()
+
+# Stop Spark
+spark.stop()
+print("ETL Pipeline Completed")
