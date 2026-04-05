@@ -130,17 +130,7 @@ When data distribution changes over time.
 * Conditional logic → best for business use
 * Quantile → best for dynamic datasets
 
----
 
-## 🚀 How to Run
-
-```bash
-pip install pyspark
-python segmentation_practice.py
-```
-
----
-
-## 🏁 Conclusion
+##  Conclusion
 
 This exercise demonstrates how to convert raw numerical data into meaningful categories using different segmentation techniques in PySpark.
